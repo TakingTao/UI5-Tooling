@@ -1,0 +1,75 @@
+<mvc:View
+    controllerName="ui5.product.list.controller.App"
+    displayBlock="true"
+    xmlns="sap.m"
+    xmlns:core="sap.ui.core"
+    xmlns:l="sap.ui.layout"
+    xmlns:form="sap.ui.layout.form"
+    xmlns:mvc="sap.ui.core.mvc">
+    <Shell>
+        <App class="myProductsList">
+            <Page class="sapUiResponsiveContentPadding" title="{i18n>appTitle}">
+                <!-- <core:Fragment type="XML" fragmentName="ui5.product.list.view.fragments.CreateProduct"/> -->
+                <List 
+                    id="idProductList"
+                    items="{product>/items}"
+                    class="sapUiSmallMarginTop listWithSmallerTitle"
+                    noDataText="{i18n>noDataText}"
+                    mode="Delete"
+                    delete="onPressDelete">
+                    <headerToolbar>
+                        <Toolbar >
+                            <Title text="{i18n>listHeader}"/>
+                            <ToolbarSpacer />
+                            <Button icon="sap-icon://add" press="onPressAddNewProduct"/>
+                        </Toolbar>
+                    </headerToolbar>
+                    <items>
+                        <ObjectListItem 
+                            title="{product>Name}"
+                            number="{
+                                parts: ['product>Price','product>Currency'],
+                                type: 'sap.ui.model.type.Currency',
+                                formatOptions: {
+                                    showMeasure: false
+                                }
+                            }"
+                            numberState="{= ${product>Price} > 20 ? 'Warning' : 'None'}"
+                            numberUnit="{product>Currency}">
+                            <attributes>
+                               <ObjectAttribute title="Category" text="{product>Category}"/> 
+                               <ObjectAttribute 
+                                    title="ReleaseDate" 
+                                    text="{
+                                        path:'product>ReleaseDate',
+                                        type: 'sap.ui.model.type.Date',
+                                        formatOptions: {
+                                            source: {pattern:'yyyy-MM-ddTHH:mm:ss.SSSX'},
+                                            style: 'short'
+                                        }
+                                    }"/>
+                                <ObjectAttribute
+                                    visible="{= !!${product>Width} &amp;&amp; !!${product>Height} &amp;&amp; !!${product>Depth} }"
+                                    text="{product>Width} X {product>Height} X {product>Depth} cm"/>
+                            </attributes>
+                            <firstStatus>
+                                <ObjectStatus 
+                                    text="{
+                                        path:'product>DiscontinuedDate',
+                                        formatter:'.formatter.formatAvailabilityText'
+                                    }"
+                                    state="{
+                                        path:'product>DiscontinuedDate',
+                                        formatter:'.formatter.formatAvailabilityState'
+                                    }"/>
+                            </firstStatus>
+                        </ObjectListItem>
+                    </items>
+                </List>
+            </Page>
+        </App>
+    </Shell>
+
+    
+
+</mvc:View>
