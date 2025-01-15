@@ -1,9 +1,11 @@
 sap.ui.define([
     'sap/ui/core/mvc/Controller',
     "sap/ui/core/Fragment",
+    "sap/ui/model/Sorter",
+    "sap/ui/model/Filter",
     "ui5/product/list/model/models",
     "ui5/product/list/model/formatter"
-],function(Controller,Fragment,models,formatter){
+],function(Controller,Fragment,Sorter,Filter,models,formatter){
     "use strict"
 
     return Controller.extend('ui5.product.list.controller.App',{
@@ -43,6 +45,7 @@ sap.ui.define([
         },
 
         onPressAddNewProduct() {
+            // Load and display the create new product dialog
             if(!this._oCreateProductDialog){
                 Fragment.load({
                     id: this.getView().getId(),
@@ -65,6 +68,106 @@ sap.ui.define([
 
         onPressCancelNewProduct() {
             this._oCreateProductDialog.close()
+        },
+
+        onSortButtonPressed() {
+            // Load and display the sort dialog
+            if(!this._oSortDialog){
+                Fragment.load({
+                    id: this.getView().getId(),
+                    name: "ui5.product.list.view.fragments.SortDialog",
+                    controller: this
+                }).then(oDialog => {
+                    this._oSortDialog = oDialog
+                    this.getView().addDependent(oDialog)
+                    oDialog.open()
+                })
+            }else{
+                this._oSortDialog.open()
+            }
+        },
+
+        onConfirmSort(oEvent) {
+            // Get sort related event parameters
+            const oSortItem = oEvent.getParameter("sortItem")
+            const bDescending = oEvent.getParameter("sortDescending")
+
+            // If there is a sort item selected, sort the list binding
+            this.getView()
+                .byId("idProductList")
+                .getBinding("items")
+                .sort(oSortItem ? [new Sorter(oSortItem.getKey(),bDescending)] : [])
+        },
+
+        onGroupButtonPressed() {
+            // Load and display the group dialog
+            if(!this._oGroupDialog){
+                Fragment.load({
+                    id: this.getView().getId(),
+                    name: "ui5.product.list.view.fragments.GroupDialog",
+                    controller: this
+                }).then(oDialog => {
+                    this._oGroupDialog = oDialog
+                    this.getView().addDependent(oDialog)
+                    oDialog.open()
+                })
+            }else{
+                this._oGroupDialog.open()
+            }
+        },
+
+        onConfirmGroup(oEvent) {
+            // Get group related event parameters
+            const oGroupItem = oEvent.getParameter("groupItem")
+            const bDescending = oEvent.getParameter("groupDescending")
+
+            // If there is a grouping item selected, group the list binding
+            // Else, group by an empty array to remove any existing grouping
+            this.getView()
+                .byId("idProductList")
+                .getBinding("items")
+                .sort(oGroupItem ? [new Sorter(oGroupItem.getKey(),bDescending, true /* vGroup */)] : [])
+        },
+
+        onFilterButtonPressed() {
+            // Load and display the filter dialog
+            if(!this._oFilterDialog){
+                Fragment.load({
+                    id: this.getView().getId(),
+                    name: "ui5.product.list.view.fragments.FilterDialog",
+                    controller: this
+                }).then(oDialog => {
+                    this._oFilterDialog = oDialog
+                    this.getView().addDependent(oDialog)
+                    oDialog.open()
+                })
+            }else{
+                this._oFilterDialog.open()
+            }
+        },
+
+        onConfirmFilter(oEvent) {
+            // Get filter items from the event object
+            const aFilterItem = oEvent.getParameter("filterItems")
+            const sFilterString = oEvent.getParameter("filterString")
+
+            // Create filters array according to the selected items
+            const aFilter = []
+
+            aFilterItem.forEach(item => {
+                const [sPath, sOperator, sValue1, sValue2] = item.getKey().split("__")
+                aFilter.push(new Filter(sPath, sOperator, sValue1, sValue2))
+            })
+
+            // Filter list binding
+            this.getView()
+                .byId("idProductList")
+                .getBinding("items")
+                .filter(aFilter)
+
+            // Show info header if there are any filters
+            this.getView().byId("idFilterInfoToolbar").setVisible(aFilterItem.length ? true : false)
+            this.getView().byId("idFilterText").setText(sFilterString)
         },
 
         _validate() {
